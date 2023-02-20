@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Wallet</title>
+    <link href="https://fonts.googleapis.com/css?family=Kanit&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<style>
+    * {
+        font-family: 'Kanit', sans-serif;
+    }
+
+    body {
+        background-color: #F9F5E7;
+    }
+
+    .container {
+        margin: 50px auto;
+        margin-bottom: 50px;
+        width: 100%;
+        height: 100vh;
+        background-color: #ECF9FF;
+        border-radius: 20px;
+        box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+        overflow-x: auto;
+    }
+
+    table {
+        margin: 20px auto;
+    }
+
+    .navbar {
+        margin-top: 10px;
+        border-radius: 20px;
+        box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+        margin-top: 20px;
+    }
+
+    .col-10 {
+        margin: 50px auto;
+        height: 40vh;
+        background-color: #F9F5E7;
+        border-radius: 20px;
+        box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+        overflow-x: auto;
+    }
+</style>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid justify-content-center">
+                <a class="info_owner navbar-brand" href="#">
+                </a>
+            </div>
+        </nav>
+        <h1 class="text-center">Bank Transaction</h1>
+        <h4 class="text-center">ระบบบริหารจัดธนาคารดิจิทัล</h4>
+        <div class="row">
+            <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">No.</th>
+                                <th scope="col">Address</th>
+                                <th scope="col">ETH</th>
+                            </tr>
+                        </thead>
+                        <tbody class="accounts">
+                        </tbody>
+                    </table>
+                </div>
+            <div class="col-10">
+                <nav class="navbar navbar-dark bg-dark">
+                    <div class="container-fluid justify-content-center">
+                        <a class="navbar-brand" href="">
+                            Bank to Customer
+                        </a>
+                    </div>
+                </nav>
+                <div class="input-group mb-3 mt-4">
+                    <span class="input-group-text">Amount</span>
+                    <input type="text" class="form-control" placeholder="Amount" aria-label="Amount" id="amount">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Message</span>
+                    <input type="text" class="form-control" placeholder="Message" aria-label="Message" id="message">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Address</span>
+                    <input type="text" class="form-control" placeholder="Address" aria-label="Address" id="address">
+                </div>
+                <div class="input-group mb-3">
+                    <button type="button" class="btn btn-primary" onclick="bank_transfer()">Send</button>
+                </div>
+            </div>
+            <div class="col-10">
+                <nav class="navbar navbar-dark bg-dark">
+                    <div class="container-fluid justify-content-center">
+                        <a class="navbar-brand" href="">
+                            P2P
+                        </a>
+                    </div>
+                </nav>
+<!--                button p2p_from p2p_to p2p_amount p2p_message-->
+                <div class="input-group mb-3 mt-4">
+                    <span class="input-group-text">From</span>
+                    <input type="text" class="form-control" placeholder="From" aria-label="From" id="p2p_from">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">To</span>
+                    <input type="text" class="form-control" placeholder="To" aria-label="To" id="p2p_to">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Amount</span>
+                    <input type="text" class="form-control" placeholder="Amount" aria-label="Amount" id="p2p_amount">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Message</span>
+                    <input type="text" class="form-control" placeholder="Message" aria-label="Message" id="p2p_message">
+                </div>
+                <div class="input-group mb-3">
+                    <button type="button" class="btn btn-primary" onclick="p2p_transfer()">Send</button>
+                </div>
+            </div>
+        </div>
+        <table class="table table-striped table-hover table-bordered table-sm table-responsive">
+            <thead>
+                <tr>
+                    <th scope="col">Block Number</th>
+                    <th scope="col">Hash</th>
+                    <th scope="col">Time</th>
+                </tr>
+            </thead>
+            <tbody class="tx_hash">
+            </tbody>
+        </table>
+    </div>
+</body>
+<script>
+    function load_tx_hash() {
+        fetch('http://127.0.0.1:5000/transactions')
+            .then(response => response.json())
+            .then(data => {
+                let tx_hash = document.querySelector('.tx_hash');
+                data.sort((a, b) => b[0] - a[0]);
+                data.forEach((item) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item[0]}</td>
+                        <td>${item[1]}</td>
+                        <td>${new Date(item[2] * 1000).toLocaleString()}</td>
+                    `;
+                    tx_hash.appendChild(tr);
+                });
+            });
+    }
+
+    function load_my_address() {
+        fetch('http://127.0.0.1:5000/my_address')
+            .then(response => response.json())
+            .then(data => {
+                let info_owner = document.querySelector('.info_owner');
+                info_owner.innerHTML = `
+                    <img src="https://cdn-icons-png.flaticon.com/512/2922/2922510.png" alt="" width="30" height="24" class="d-inline-block align-text-top">
+                    Owner Address: ${data[0]} - Balance: ${data[1] / 1000000000000000000} ETH
+                `;
+            });
+    }
+
+    function load_accounts() {
+        fetch('http://127.0.0.1:5000/accounts')
+            .then(response => response.json())
+            .then(data => {
+                let accounts = document.querySelector('.accounts');
+                data.forEach((item, index) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item[0]}</td>
+                        <td>${item[1] / 1000000000000000000}</td>
+                    `;
+                    accounts.appendChild(tr);
+                });
+            });
+    }
+
+    function bank_transfer() {
+        let amount = document.querySelector('#amount').value;
+        let message = document.querySelector('#message').value;
+        let address = document.querySelector('#address').value;
+        fetch('http://127.0.0.1:5000/transfer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                key: '111eb1f61eaf381df3f54a2491025a4a9149b64877c8c4607327be6437fb0b98',
+                amount: amount,
+                message: message,
+                to: address
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                Swal.fire({
+                    title: 'Bank of Thailand',
+                    html: `Block Number: ${data.block}
+                            <br>Time: ${new Date(data.time * 1000).toLocaleString()}
+                            <br>From: ${data.from}
+                            <br>To: ${data.to}
+                            <br>Amount: ${data.value / 1000000000000000000} ETH
+                            <br>Message: ${data.message}
+                            <br>Gas Used: ${data.gas}
+                            `,
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: true,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed || result.isDismissed) {
+                        window.location.reload();
+                    }
+                })
+            });
+    }
+
+    function p2p_transfer() {
+        let p2p_from = document.querySelector('#p2p_from').value;
+        let p2p_to = document.querySelector('#p2p_to').value;
+        let p2p_amount = document.querySelector('#p2p_amount').value;
+        let p2p_message = document.querySelector('#p2p_message').value;
+        fetch('http://127.0.0.1:5000/p2p', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                send_from: p2p_from,
+                to: p2p_to,
+                amount: p2p_amount,
+                message: p2p_message
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                Swal.fire({
+                    title: 'Bank of Thailand',
+                    html: `Block Number: ${data.block}
+                            <br>Time: ${new Date(data.time * 1000).toLocaleString()}
+                            <br>From: ${data.from}
+                            <br>To: ${data.to}
+                            <br>Amount: ${data.value / 1000000000000000000} ETH
+                            <br>Message: ${data.message}
+                            <br>Gas Used: ${data.gas}
+                            `,
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: true,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed || result.isDismissed) {
+                        window.location.reload();
+                    }
+                })
+            });
+    }
+
+
+    window.onload = function () {
+        Swal.fire({
+            title: 'Bank of Thailand',
+            text: 'ยินดีต้อนรับสู่ระบบ Wallet',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        })
+
+        load_tx_hash();
+        load_my_address();
+        load_accounts();
+    }
+</script>
+</html>
